@@ -3,7 +3,10 @@ import express from 'express';
 const router = express.Router();
 
 router.get('', (_, res) => {
-  return res.send('test router');
+  return res.status(200).json({
+    name : 'foo', 
+    age : 'bar'
+  })
 });
 
 export default router;
