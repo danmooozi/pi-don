@@ -1,5 +1,8 @@
 import express from 'express';
 import axios from 'axios';
+import { getUser } from '@/services/user';
+import { getUserCommits } from '@/services/index';
+import { getRepoCommits } from '@/services/commit';
 
 const router = express.Router();
 
@@ -25,6 +28,22 @@ router.get('/callback', async (req, res) => {
     return;
   }
   res.json(true);
+});
+
+router.get('/test', async (req, res) => {
+  const accessToken = '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';
+
+  const user = await getUser(accessToken);
+  const userName = user.login;
+
+  /* const data = await getUserCommits(accessToken, userName, {
+    since: '2023-01-01T00:00:00Z',
+    until: '2024-01-01T00:00:00Z',
+    per_page: 100,
+  }); */
+ const data = await getRepoCommits(accessToken, 'rolled-potatoes', 'utterance')
+
+  res.json(data);
 });
 
 router.get('data', async (req, res) => {
