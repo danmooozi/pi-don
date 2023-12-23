@@ -1,0 +1,19 @@
+<html>
+  <body>
+    <button type="button" id="github-button">github-button</button>
+  </body>
+
+  <script>
+    const button = document.querySelector('#github-button');
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const scope = 'public_repo';
+      const redirect_uri = 'http://localhost:3000/api/v1/callback';
+      const client_id = '992209430f73ccf5eaf1';
+
+      const url = `https://github.com/login/oauth/authorize?scope=${scope}&redirect_uri=${redirect_uri}&client_id=${client_id}`;
+      console.log(url);
+      window.location.href = url;
+    });
+  </script>
+</html>
