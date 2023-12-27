@@ -55,7 +55,7 @@ router.get("/test", async (req, res) => {
 });
 
 router.get("/data", async (req, res) => {
-  const accessToken = "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";
+  const { accessToken } = req.body;
 
   const user = await getUser(accessToken);
   const userName = user.login;
