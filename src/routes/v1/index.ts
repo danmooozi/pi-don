@@ -5,6 +5,7 @@ import {
   getUserCommits,
   getUserRepoStars,
   getFriendsCount,
+  getUserEvents,
 } from "@/services/index";
 import { getRepoCommits } from "@/services/commit";
 
@@ -55,42 +56,57 @@ router.get("/test", async (req, res) => {
 });
 
 router.get("/data", async (req, res) => {
-  const { accessToken } = req.body;
+  try {
+    const accessToken = req.query.accessToken as string;
+    if (!accessToken) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
-  const user = await getUser(accessToken);
-  const userName = user.login;
+    const user = await getUser(accessToken);
+    const userName = user.login;
+    const email = user.email;
 
-  const commits = await getUserCommits(accessToken, userName, {
-    since: "2023-01-01T00:00:00Z",
-    until: "2024-01-01T00:00:00Z",
-    per_page: 100,
-  });
+    const events = await getUserEvents(accessToken, userName, email);
 
-  const starCount = await getUserRepoStars(accessToken, userName);
-  const { followerCount, followingCount } = await getFriendsCount(accessToken);
+    /*
+    const commits = await getUserCommits(accessToken, userName, {
+      since: "2023-01-01T00:00:00Z",
+      until: "2024-01-01T00:00:00Z",
+      per_page: 100,
+    });
+    */
 
-  const mostUsedLanguage = ["JavaScript", "TypeScript", "Python"]; // string[]
-  const moreThan = "high"; // high, middle, low
-  const commitCount = 1234; // number
-  const commitDate = "월요일"; // 월요일, 화요일, 수요일, 목요일, 금요일, 토요일, 일요일
-  const mostCommunication = {
-    // 여기 줄때 github profile 주소도 주면 좋지 않을까 ?
-    name: "bsy1141", // string
-    image: "https://avatars.githubusercontent.com/u/60652298?v=4", // string
-  };
-  const mbti = "INFP"; // string
+    const starCount = await getUserRepoStars(accessToken, userName);
+    const { followerCount, followingCount } =
+      await getFriendsCount(accessToken);
 
-  res.json({
-    starCount,
-    followerCount,
-    followingCount,
-    mostUsedLanguage,
-    moreThan,
-    commitCount,
-    commitDate,
-    mostCommunication,
-    mbti,
-  });
+    const mostUsedLanguage = ["JavaScript", "TypeScript", "Python"]; // string[]
+    const moreThan = "high"; // high, middle, low
+    const commitCount = 1234; // number
+    const commitDate = "월요일"; // 월요일, 화요일, 수요일, 목요일, 금요일, 토요일, 일요일
+    const mostCommunication = {
+      // 여기 줄때 github profile 주소도 주면 좋지 않을까 ?
+      name: "bsy1141", // string
+      image: "https://avatars.githubusercontent.com/u/60652298?v=4", // string
+    };
+    const mbti = "INFP"; // string
+
+    res.json({
+      starCount,
+      followerCount,
+      followingCount,
+      mostUsedLanguage,
+      moreThan,
+      commitCount,
+      commitDate,
+      mostCommunication,
+      mbti,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 export default router;
