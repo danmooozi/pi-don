@@ -12,3 +12,17 @@ app.use((_, res) => {
 app.listen(Bun.env.SERVER_PORT, () => {
   console.log(`Bun server on : ${Bun.env.SERVER_PORT}`);
 });
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+});
