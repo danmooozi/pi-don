@@ -1,0 +1,2 @@
+Bun server on : 8000
+go

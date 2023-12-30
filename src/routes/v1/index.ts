@@ -69,6 +69,7 @@ router.get("/data", async (req, res) => {
 
     const events = await getUserEvents(accessToken, userName, email);
 
+    console.log(events);
     /*
     const commits = await getUserCommits(accessToken, userName, {
       since: "2023-01-01T00:00:00Z",

@@ -56,20 +56,29 @@ export const getUserEvents = async (
   userName: string,
   email: string
 ) => {
+  console.log("go");
   let findMore = true;
   let page = 1;
-  let count = 0;
   const thisYearCommit: any[] = [];
   while (findMore) {
-    await delay(1000);
-    const events = await getAllEvents(accessToken, userName, {
-      page,
-      per_page: 30,
-    });
+    await delay(2000);
+    let events = [];
+    try {
+      events = await getAllEvents(accessToken, userName, {
+        page,
+        per_page: 100,
+        timeout: 5000,
+      });
+      console.log(events);
+    } catch (e) {
+      console.log(e);
+      return;
+    }
+
     page += 1;
 
     console.log(events.length);
-    if (!events || events.length === 0) {
+    if (events.length < 100) {
       findMore = false;
       break;
     }
