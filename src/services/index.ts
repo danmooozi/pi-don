@@ -1,6 +1,7 @@
 import { getRepos, getRepoStars } from './repo';
 import { getRepoCommits, getAllEvents } from './commit/';
 import { getUser } from './user';
+import { getRateLimit } from './rate';
 
 const startAt = new Date('2023-01-01T00:00:00Z');
 const delay = (ms: number) => {
@@ -61,50 +62,46 @@ export const getUserEvents = async (
   let page = 1;
   let thisYearCommit: any[] = [];
   while (findMore) {
-    await delay(2000);
-
     let events = [];
     try {
-      events = await getAllEvents(accessToken, userName, {
+      const { data, hasNext } = await getAllEvents(accessToken, userName, {
         page,
         per_page: 100,
       });
+      events = data;
+      page += 1;
+
+      events = events.filter((event: any) => {
+        const createdAt = new Date(event.created_at);
+        const is2023Over = createdAt.getTime() >= startAt.getTime();
+        return is2023Over;
+      });
+
+      findMore = events.length !== 0;
+
+      events
+        .filter((event: any) => event.type === 'PushEvent')
+        .forEach((event: any) => {
+          const myCommits = event.payload.commits
+            .filter((commit: any) => {
+              const isCommitAuthor =
+                commit.author.name === userName ||
+                commit.author.email === email;
+              return isCommitAuthor;
+            })
+            .map((myCommit: any) => ({
+              ...myCommit,
+              createdAt: event.created_at,
+            }));
+
+          thisYearCommit = thisYearCommit.concat(myCommits);
+        });
+      if (!hasNext) {
+        break;
+      }
     } catch (e) {
       console.log(e);
     }
-
-    page += 1;
-
-    if (events.length < 100) {
-      findMore = false;
-    }
-
-    events = events.filter((event: any) => {
-      const createdAt = new Date(event.created_at);
-      const is2023Over = createdAt.getTime() >= startAt.getTime();
-      return is2023Over;
-    });
-
-    findMore = events.length !== 0;
-
-    events
-      .filter((event: any) => event.type === 'PushEvent')
-      .forEach((event: any) => {
-        const myCommits = event.payload.commits
-          .filter((commit: any) => {
-            const isCommitAuthor =
-              commit.author.name === userName || commit.author.email === email;
-            return isCommitAuthor;
-          })
-          .map((myCommit: any) => ({
-            ...myCommit,
-            createdAt: event.created_at,
-          }));
-
-        thisYearCommit = thisYearCommit.concat(myCommits);
-      });
   }
-
-  console.log('end', thisYearCommit.length);
   return thisYearCommit;
 };

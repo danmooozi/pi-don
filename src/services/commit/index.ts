@@ -1,15 +1,21 @@
-import { getGithubAxiosInstance } from "@/utils/github";
-import qs from "query-string";
+import { getGithubAxiosInstance } from '@/utils/github';
+import qs from 'query-string';
+import { Octokit } from 'octokit';
 
 type TQuery = {
   [key: string]: any;
+};
+
+const checkHasMoreEvent = (headers: Record<string, any>) => {
+  const reg = /rel=\\\"next\\"/g;
+  return reg.test(headers.link);
 };
 
 export const getRepoCommits = async (
   accessToken: string,
   ownerName: string,
   repoName: string,
-  query: TQuery = {}
+  query: TQuery = {},
 ) => {
   const instance = getGithubAxiosInstance(accessToken);
   const url = qs.stringifyUrl(
@@ -20,7 +26,7 @@ export const getRepoCommits = async (
     {
       skipNull: true,
       skipEmptyString: true,
-    }
+    },
   );
   const { data } = await instance.get(url);
 
@@ -30,9 +36,12 @@ export const getRepoCommits = async (
 export const getAllEvents = async (
   accessToken: string,
   userName: string,
-  query: TQuery = {}
+  query: TQuery = {},
 ) => {
-  const instance = getGithubAxiosInstance(accessToken);
+  /*   const instance = getGithubAxiosInstance(accessToken); */
+  const octokit = new Octokit({
+    auth: accessToken,
+  });
   const url = qs.stringifyUrl(
     {
       url: `/users/${userName}/events`,
@@ -41,9 +50,23 @@ export const getAllEvents = async (
     {
       skipNull: true,
       skipEmptyString: true,
-    }
+    },
   );
-  const { data } = await instance.get(url);
+  const { data, headers } = await octokit.request(`GET ${url}`, {
+    username: 'USERNAME',
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+  const hasNext = checkHasMoreEvent(headers);
+  return {
+    data,
+    hasNext,
+  };
 
-  return data;
+  /* const { data } = await instance.get(url, {
+      timeout: 5000,
+    });
+
+    return data; */
 };

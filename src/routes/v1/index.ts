@@ -7,7 +7,7 @@ import {
   getFriendsCount,
   getUserEvents,
 } from '@/services/index';
-import { getRepoCommits } from '@/services/commit';
+import { getRepoCommits, getAllEvents } from '@/services/commit';
 
 const router = express.Router();
 
@@ -67,6 +67,12 @@ router.get('/data', async (req, res) => {
     const userName = user.login;
     const email = user.email;
 
+    /* const tempDatas = await getAllEvents(accessToken, userName, {
+      page: 10,
+      per_page: 10,
+    });
+    res.json(tempDatas);
+    return; */
     const events = await getUserEvents(accessToken, userName, email);
 
     const starCount = await getUserRepoStars(accessToken, userName);
