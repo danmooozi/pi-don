@@ -6,6 +6,10 @@ import {
   getUserRepoStars,
   getFriendsCount,
 } from "@/services/index";
+import {
+  getMost3UsedLanguageInCommit,
+  getMostCommitDay,
+} from "@/services/commit";
 
 const router = express.Router();
 
@@ -55,21 +59,26 @@ router.get("/data", async (req, res) => {
   const user = await getUser(accessToken);
   const userName = user.login;
 
-  const commits = await getUserCommits(accessToken, userName, {
+  const commitsByRepo = await getUserCommits(accessToken, userName, {
     since: "2023-01-01T00:00:00Z",
     until: "2024-01-01T00:00:00Z",
     per_page: 100,
   });
 
-  console.log(commits);
+  const commits = Object.values(commitsByRepo).flat(Infinity);
 
   const starCount = await getUserRepoStars(accessToken, userName);
   const { followerCount, followingCount } = await getFriendsCount(accessToken);
 
-  const mostUsedLanguage = ["JavaScript", "TypeScript", "Python"]; // string[]
-  const moreThan = "high"; // high, middle, low
-  const commitCount = 1234; // number
-  const commitDate = "월요일"; // 월요일, 화요일, 수요일, 목요일, 금요일, 토요일, 일요일
+  const mostUsedLanguage = getMost3UsedLanguageInCommit(commits);
+  let moreThan = "high";
+  const commitCount = commits.length; // number
+  if (commitCount > 100) moreThan = "high";
+  else if (commitCount > 50) moreThan = "middle";
+  else moreThan = "low";
+
+  const mostCommitDay = getMostCommitDay(commits);
+  const commitDate = mostCommitDay; // 월요일, 화요일, 수요일, 목요일, 금요일, 토요일, 일요일
   const mostCommunication = {
     // 여기 줄때 github profile 주소도 주면 좋지 않을까 ?
     name: "bsy1141", // string
