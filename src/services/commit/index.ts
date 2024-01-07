@@ -14,13 +14,20 @@ export const getRepoCommits = async (
     auth: accessToken,
   });
 
+  /*
   const { data } = await octokit.request("GET /repos/{owner}/{repo}/commits", {
     owner: ownerName,
     repo: repoName,
     ...query,
   });
+  */
+  const { data } = await octokit.request("GET /search/commits", {
+    q: `author:${ownerName} author-date:2023-01-01..2023-12-31`,
+  });
 
-  const myCommits = data.filter((commit) => commit.author?.login === ownerName);
+  const myCommits = data.items;
+
+  console.log(myCommits);
 
   const details = [];
   for (const commit of myCommits) {
@@ -30,6 +37,59 @@ export const getRepoCommits = async (
       {
         owner: ownerName,
         repo: repoName,
+        commit_sha: sha,
+      },
+    );
+    details.push({
+      files: data.files,
+      date: data.commit.author.date,
+      message: data.commit.message,
+      parents: data.parents,
+    });
+  }
+
+  return details;
+};
+
+export const getMyRepoCommits = async (
+  accessToken: string,
+  userName: string,
+) => {
+  let pagesRemaining = true;
+  let data: any[] = [];
+  let count = 1;
+  const octokit = new Octokit({
+    auth: accessToken,
+  });
+
+  while (pagesRemaining) {
+    const response = await octokit.request("GET /search/commits", {
+      q: `author:${userName} author-date:2023-01-01..2023-12-31`,
+      per_page: 100,
+      page: count,
+    });
+
+    data = [...data, ...response.data.items];
+
+    const linkHeader = response.headers.link;
+
+    pagesRemaining = !!(linkHeader && linkHeader.includes(`rel=\"next\"`));
+
+    if (pagesRemaining) {
+      count++;
+    }
+  }
+  console.log(data.length);
+  const details = [];
+  let remaining = data.length;
+  for (const commit of data) {
+    console.log(remaining--);
+    const { sha, repository } = commit;
+    const { data } = await octokit.request(
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}",
+      {
+        owner: repository.full_name.split("/")[0],
+        repo: repository.full_name.split("/")[1],
         commit_sha: sha,
       },
     );

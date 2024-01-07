@@ -9,6 +9,7 @@ import {
 import {
   getMost3UsedLanguageInCommit,
   getMostCommitDay,
+  getMyRepoCommits,
 } from "@/services/commit";
 
 const router = express.Router();
@@ -59,13 +60,16 @@ router.get("/data", async (req, res) => {
   const user = await getUser(accessToken);
   const userName = user.login;
 
+  /*
   const commitsByRepo = await getUserCommits(accessToken, userName, {
     since: "2023-01-01T00:00:00Z",
     until: "2024-01-01T00:00:00Z",
     per_page: 100,
   });
+  */
+  const commits = await getMyRepoCommits(accessToken, userName);
 
-  const commits = Object.values(commitsByRepo).flat(Infinity);
+  // const commits = Object.values(commitsByRepo).flat(Infinity);
 
   const starCount = await getUserRepoStars(accessToken, userName);
   const { followerCount, followingCount } = await getFriendsCount(accessToken);
