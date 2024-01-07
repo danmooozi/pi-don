@@ -1,6 +1,6 @@
-import { getRepos, getRepoStars } from './repo';
-import { getRepoCommits } from './commit/';
-import { getUser } from './user';
+import { getRepos, getRepoStars } from "./repo";
+import { getRepoCommits } from "./commit/";
+import { getUser } from "./user";
 
 async function getTotalRepoCommits({
   ownerName,
@@ -91,7 +91,6 @@ export const getUserRepoStars = async (
 
   const jobs = Promise.all(queue);
   return (await jobs).reduce((acc, cur) => {
-    console.log(acc, cur);
     return acc + cur;
   }, 0);
 };
